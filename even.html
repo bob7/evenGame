@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Game</title>
+  <style>
+    body {
+		font-family: Arial, sans-serif;
+		font-size: 9pt;
+		background: rgb(24,24,24);
+    }
+	h1 {color: #555;}
+    .game-container {
+		width: 100%;
+		text-align: center;
+		margin-top: 90px;
+		padding-top: 30px;
+		padding-bottom: 40px;
+		margin: auto;
+	   overflow: auto;
+    }
+    .grid-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px;
+      border: 1px solid #555;
+      border-radius: 8px;
+    }
+    .grid-controls button {
+      font-size: 13px;
+      padding: 4px 8px;
+      cursor: pointer;
+      margin: 0;
+      box-sizing: border-box;
+      min-height: 28px;
+    }
+    .grid-controls .grid-size-button {
+      width: 28px;
+      padding: 0;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #999;
+      color: #fff;
+      border: 1px solid #777;
+      border-radius: 5px;
+    }
+    #grid-size-label {
+      color: #ddd;
+      font-size: 13px;
+      min-width: 24px;
+    }
+    .full-view .game-container {
+      padding-top: 8px;
+      padding-bottom: 0;
+    }
+    .full-view #turn-indicator:empty { display: none; }
+    .grid-controls .view-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      padding: 4px;
+    }
+    .number-bar {
+		display: grid;
+		grid-gap: 0px;
+		justify-content: center;
+		margin-bottom: 0px;
+/*		overflow: hidden;*/
+    }
+    .number-block {
+        background-color: white;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		font-size: 9px;  /* Smaller font size */
+		color: transparent; /* Hide the number */
+		position: relative;
+		border: 1px solid #AAA;
+		box-sizing: border-box;
+		aspect-ratio: 1 / 1;/* Keep square */
+    }
+		.line-end {border-right: 2px solid black;}
+
+    .player1-picked {
+      background-color: red;
+	  opacity: 0.7;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+    }
+    .player1-picked.completed {
+      background-color: #c08080;
+      opacity: 0.3;
+    }
+    .player2-picked {
+      background-color: rgb(20,190, 20);
+      position: absolute;
+	  opacity: 0.6;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+    }
+    .picked-numbers {display:none;}
+
+	input:checked  {
+	  background-color: #2196F3;
+	}
+
+	input:checked :before {
+	  transform: translateX(26px);
+	}
+	.toggle-button {
+	  border: 0.1em #bbb solid; 
+	  font-size:9px; 
+	  margin-left: 10px;
+	  border-radius: 5px;
+	  background-color: #eee;
+	  color: #000;
+	  cursor: pointer;
+	  transition: background-color 0.3s ease;
+	}
+	.toggle-button.active {background-color: #4CAF50; color: white; }
+    .toggle-button:disabled {
+	  cursor: not-allowed;
+	  opacity: 0.45;
+	}
+
+	.mode-button {
+	  padding: 6px 12px;
+	  margin-left: 5px;
+	  border: none;
+	  border-radius: 5px;
+	  background-color: #ddd;
+	  color: #000;
+/*	  font-weight: bold;*/
+	  cursor: pointer;
+	  transition: background-color 0.3s ease;
+	}
+	.mode-button.active {
+	  background-color: #2196F3;
+	  color: white;
+	}
+	/* The Modal (background) */
+	.modal {
+	  display: none; /* Hidden by default */
+/*	  position: fixed;*/
+	  z-index: 1; /* Sit on top */
+	  left: 0;
+	  top: 0;
+	  width: 100%;
+	  height: 100%;
+	  overflow: scroll;
+	  	  font-size: 9px;
+	  background-color: rgb(0,0,0); /* Fallback color */
+	  background-color: #555; /* Black w/ opacity */
+/*	  padding-top: 60px;*/
+	}
+
+	/* Modal Content */
+	.modal-content {
+	  background-color: #fefefe;
+	  margin: 5% auto;
+	  color:#444;
+	  text-align:left;
+	  font-size:9pt;
+	  padding: 20px;
+	  border: 1px solid #888;
+	  width: 80%;
+	  max-width: 600px;
+	  border-radius: 10px;
+	}
+
+	/* The Close Button */
+	.close-btn {
+	  color: #aaa;
+	  float: right;
+	  font-size: 12px;
+	  font-weight: bold;
+	  cursor: pointer;
+	}
+
+	.close-btn:hover,
+	.close-btn:focus {
+	  color: black;
+	  text-decoration: none;
+	  cursor: pointer;
+	}
+
+	/* Modal Text Styling */
+	h2 {
+	  color: #444;
+	  text-align: center;
+	}
+
+	ul {
+	  margin: 10px 0;
+	  padding-left: 20px;
+	}
+
+	ul li {
+	  line-height: 1.6;
+	}
+
+	strong {
+	  color: #444;
+	}
+
+</style>
+</head><body><div class="game-container">
+<!-- <h1>Number Game</h1> -->
+
+<div class="grid-controls">
+  <div class="control-group" role="group" aria-label="Grid size">
+    <button class="grid-size-button" aria-label="Decrease grid size" onclick="changeGridSize(-2)">-</button>
+    <span id="grid-size-label">11</span>
+    <button class="grid-size-button" aria-label="Increase grid size" onclick="changeGridSize(2)">+</button>
+  </div>
+  <div class="control-group" role="group" aria-label="Automatic players">
+    <button id="autoPlayer1Btn" class="toggle-button" onclick="toggleAutoPlayer(1)">P1-auto</button>
+    <button id="smartPlayer2Btn" class="toggle-button" onclick="toggleSmartPlayer2()">P2-auto</button>
+  </div>
+  <div class="control-group" role="group" aria-label="Demo and exports">
+    <button id="demoBtn" class="toggle-button" onclick="toggleDemo()">Demo</button>
+    <button id="stepBtn" class="toggle-button" onclick="stepDemo()">Step</button>
+  </div>
+  <div class="control-group" role="group" aria-label="Exports">
+    <button class="toggle-button" onclick="downloadGridSvg()">svg</button>
+    <button id="asvgBtn" class="toggle-button" onclick="downloadDemoSvg()" disabled title="Pause a demo or use Step before exporting replay files">asvg</button>
+    <button id="gifBtn" class="toggle-button" onclick="downloadDemoGif()" disabled title="Pause a demo or use Step before exporting replay files">gif</button>
+  </div>
+  <div class="control-group" role="group" aria-label="Game rules">
+    <button id="fullViewBtn" class="toggle-button view-button" onclick="toggleFullView()" aria-label="Full view" aria-pressed="false" title="Full view">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>
+    </button>
+    <button class="toggle-button" onclick="showRules()">Rules</button>
+  </div>
+</div>
+
+<!-- Modal for Rules -->
+<div id="rulesModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeRules()">&times;</span>
+    <h2>Game Rules</h2>
+    <p><strong>Grid and colors</strong></p>
+    <ul>
+      <li>Cells are numbered from <strong>0</strong>, from top-left to bottom-right, and start with a white background.</li>
+      <li>Player 1's current picks have bright red top halves. After Player 2 makes a valid move, those four fills become dim red with a light gray tint.</li>
+      <li>Player 2's chosen pairs have green bottom halves. Available moves are not highlighted.</li>
+    </ul>
+    <p><strong>Moves and restrictions</strong></p>
+    <ul>
+      <li>Player 1 chooses a set <strong>R of 4 cells</strong> per round. They may select cells used by Player 2, but cannot reuse their own picks.</li>
+      <li>Player 2's cells form pairs <strong>(0, 1), (2, 3), (4, 5), …</strong>, including across row boundaries. The final unpaired cell is unavailable to Player 2.</li>
+      <li>Player 2 clicks either member of an unused pair <strong>(2i, 2i+1)</strong>. At least one member must be between <strong>min(R)</strong> and <strong>max(R)</strong>, inclusive; the clicked member itself may be outside that range.</li>
+      <li>A valid pick gives both cells green bottom fills and makes both unavailable to Player 2 in future rounds. Invalid picks leave the board unchanged.</li>
+      <li>A player loses when they cannot make a valid move.</li>
+    </ul>
+    <p><strong>Controls</strong></p>
+    <ul>
+      <li><strong>− / +</strong>: decrease or increase the grid side length by two and start a fresh game. The number between them shows the current side length.</li>
+      <li><strong>P1-auto / P2-auto</strong>: toggle computer play for the corresponding player.</li>
+      <li><strong>Demo / Pause</strong>: start an automated game, pause it, or resume it.</li>
+      <li><strong>Step</strong>: start a stepped demo or advance one turn at a time: Player 1's four picks, then Player 2's pair.</li>
+      <li><strong>svg</strong>: download a vector snapshot of the current board.</li>
+      <li><strong>asvg</strong>: download a looping animated SVG replay when a demo is paused, stepped, or finished.</li>
+      <li><strong>gif</strong>: download a looping GIF replay when a demo is paused, stepped, or finished.</li>
+      <li><strong>Full-view icon</strong> (left of Rules): fit the square grid within the browser window with padding. It adapts when the window is resized and preserves the game. Click again to restore the standard size.</li>
+      <li><strong>Rules</strong>: open this guide.</li>
+    </ul>
+  </div>
+</div>
+
+
+<div class="number-bar"></div>
+<div class="picked-numbers"><label></label><span id="player1-picks"></span><br><label></label><span id="player2-picks"></span></div>
+<p id="turn-indicator"></p>
+</div>
+<script>
+  let player1Picks = new Set();
+  let player2Picks = new Set();
+  let player1StagePicks = new Set();
+  let player1PickCount = 4;
+  let turn = 1;
+  let smartPlayer2 = false;
+  let autoPlayer1 = false;
+  let autoPlayer2 = false;
+  let startAfterGrid = false;
+  let gridSize = 11;
+  let fullView = false;
+  let delayvar = 500;
+  let isPaused = false;
+  let isDemoRunning = false;
+  let demoHistory = [];
+  let demoMode = null;
+  let demoTimer = null;
+
+  function showRules() {
+    const modal = document.getElementById('rulesModal');
+    modal.style.display = "block";
+  }
+  
+  function closeRules() {
+    const modal = document.getElementById('rulesModal');
+    modal.style.display = "none";
+  }
+ 
+  window.onclick = function(event) {
+    const modal = document.getElementById('rulesModal');
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  }
+
+
+  function configureDemoPlayers() {
+    autoPlayer1 = true;
+    smartPlayer2 = true;
+    delayvar = 1200;
+    document.getElementById('autoPlayer1Btn')?.classList.add('active');
+    document.getElementById('autoPlayer2Btn')?.classList.remove('active');
+    document.getElementById('smartPlayer2Btn')?.classList.add('active');
+  }
+
+  function setDemoButtonState() {
+    const demoBtn = document.getElementById('demoBtn');
+    const isAutomaticallyPlaying = isDemoRunning && demoMode === 'auto' && !isPaused && turn !== 0;
+    demoBtn.textContent = isAutomaticallyPlaying ? 'Pause' : 'Demo';
+    demoBtn.classList.toggle('active', isAutomaticallyPlaying);
+  }
+
+  function scheduleDemoMove() {
+    clearTimeout(demoTimer);
+    demoTimer = setTimeout(() => {
+      demoTimer = null;
+      if (!isDemoRunning || isPaused || demoMode !== 'auto' || turn === 0) return;
+
+      if (turn === 1 && player1StagePicks.size === 0) {
+        autoPlayPlayer1();
+      } else if (turn === 2 && player1StagePicks.size === player1PickCount) {
+        autoPlaySmartPlayer2();
+      }
+    }, delayvar);
+  }
+
+  function endDemo() {
+    clearTimeout(demoTimer);
+    demoTimer = null;
+    isPaused = true;
+    setDemoButtonState();
+    updateGifButton();
+  }
+
+  function beginDemo(mode) {
+    clearTimeout(demoTimer);
+    configureDemoPlayers();
+    isDemoRunning = true;
+    demoHistory = [];
+    demoMode = mode;
+    isPaused = mode === 'step';
+
+    generateGrid();
+    recordDemoFrame('Start');
+    setDemoButtonState();
+
+    if (mode === 'auto') {
+      scheduleDemoMove();
+    } else {
+      performDemoStep();
+    }
+  }
+
+  function toggleDemo() {
+    if (!isDemoRunning || turn === 0) {
+      beginDemo('auto');
+      return;
+    }
+
+    if (demoMode === 'auto' && !isPaused) {
+      isPaused = true;
+      clearTimeout(demoTimer);
+      demoTimer = null;
+      setDemoButtonState();
+      updateGifButton();
+      return;
+    }
+
+    demoMode = 'auto';
+    isPaused = false;
+    setDemoButtonState();
+    updateGifButton();
+    scheduleDemoMove();
+  }
+
+  function performDemoStep() {
+    if (turn === 1 && player1StagePicks.size === 0) {
+      autoPlayPlayer1(true);
+    } else if (turn === 2 && player1StagePicks.size === player1PickCount) {
+      autoPlaySmartPlayer2(true);
+    }
+    setDemoButtonState();
+    updateGifButton();
+  }
+
+  function stepDemo() {
+    if (!isDemoRunning || turn === 0) {
+      beginDemo('step');
+      return;
+    }
+
+    clearTimeout(demoTimer);
+    demoTimer = null;
+    demoMode = 'step';
+    isPaused = true;
+    performDemoStep();
+  }
+
+
+  function setPickCount(count) {
+    player1PickCount = count;
+    document.getElementById('pick3Btn').classList.toggle('active', count === 3);
+    document.getElementById('pick4Btn').classList.toggle('active', count === 4);
+  }
+
+
+  function toggleSmartPlayer2() {
+    smartPlayer2 = !smartPlayer2;
+    document.getElementById('smartPlayer2Btn').classList.toggle('active', smartPlayer2);
+
+    // If Smart Player 2 is enabled and it's currently Player 2's turn, make a move now
+    if (smartPlayer2 && turn === 2 && player1StagePicks.size === player1PickCount) {
+      setTimeout(autoPlaySmartPlayer2, delayvar);
+    }
+  }
+
+
+  function toggleAutoPlayer(player) {
+    if (player === 1) {
+      autoPlayer1 = !autoPlayer1;
+      document.getElementById('autoPlayer1Btn').classList.toggle('active', autoPlayer1);
+      if (autoPlayer1 && turn === 1 && player1StagePicks.size === 0) {
+        setTimeout(autoPlayPlayer1, delayvar);
+      }
+    } else if (player === 2) {
+      autoPlayer2 = !autoPlayer2;
+      document.getElementById('autoPlayer2Btn').classList.toggle('active', autoPlayer2);
+    }
+  }
+
+  function changeGridSize(delta) {
+    gridSize = Math.max(3, gridSize + delta);
+    document.getElementById("grid-size-label").textContent = `${gridSize}`;
+    // document.getElementById("grid-size-label").textContent = ``;
+    clearTimeout(demoTimer);
+    demoTimer = null;
+    isDemoRunning = false;
+    demoHistory = [];
+    demoMode = null;
+    isPaused = false;
+    setDemoButtonState();
+    updateGifButton();
+    generateGrid();
+  }
+
+  function updateGifButton() {
+    const gifBtn = document.getElementById('gifBtn');
+    const asvgBtn = document.getElementById('asvgBtn');
+    const canExport = isDemoRunning && demoHistory.length > 0 &&
+      (isPaused || demoMode === 'step' || turn === 0);
+    gifBtn.disabled = !canExport;
+    asvgBtn.disabled = !canExport;
+    gifBtn.title = canExport
+      ? 'Download this demo replay as a GIF'
+      : 'Pause a demo or use Step before exporting replay files';
+    asvgBtn.title = canExport
+      ? 'Download this demo replay as an animated SVG'
+      : 'Pause a demo or use Step before exporting replay files';
+  }
+
+  function recordDemoFrame(label) {
+    if (!isDemoRunning) return;
+
+    demoHistory.push({
+      label,
+      player1: [...player1Picks],
+      player2: [...player2Picks],
+      stage: [...player1StagePicks]
+    });
+    updateGifButton();
+  }
+
+  function downloadDemoGif() {
+    downloadDemoAnimation('gif');
+  }
+
+  function downloadDemoSvg() {
+    downloadDemoAnimation('svg');
+  }
+
+  function downloadDemoAnimation(format = 'gif') {
+    const canExport = isDemoRunning && demoHistory.length > 0 &&
+      (isPaused || demoMode === 'step' || turn === 0);
+    if (!canExport) return;
+
+    const cellSize = 28;
+    const titleHeight = 30;
+    const width = gridSize * cellSize;
+    const height = titleHeight + gridSize * cellSize;
+    const frameSeconds = 0.9;
+    const totalSeconds = Math.max(frameSeconds * demoHistory.length, frameSeconds);
+    const escapeXml = value => String(value).replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'
+    })[char]);
+    const number = value => Number(value).toFixed(3).replace(/\.0+$/, '');
+    const downloadBlob = (blob, filename) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      // Do not revoke synchronously: some browsers begin a download only after
+      // this click handler returns, which otherwise drops the first of two files.
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+
+    const frameSvg = (frame, index) => {
+      const player1 = new Set(frame.player1);
+      const stage = new Set(frame.stage);
+      const player2 = new Set(frame.player2);
+      const start = (index * frameSeconds) / totalSeconds;
+      const end = Math.min((index + 1) * frameSeconds / totalSeconds, 1);
+      const visibleAt = number(start);
+      const hiddenAt = number(end);
+      let cells = '';
+
+      for (let value = 0; value < gridSize * gridSize; value++) {
+        const column = value % gridSize;
+        const row = Math.floor(value / gridSize);
+        const x = column * cellSize;
+        const y = titleHeight + row * cellSize;
+        const fill = '#ffffff';
+        cells += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${fill}" stroke="#AAAAAA"/>`;
+        if (player1.has(value)) {
+          cells += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize / 2}" fill="${stage.has(value) ? '#ff0000' : '#c08080'}" fill-opacity="${stage.has(value) ? 0.7 : 0.3}"/>`;
+        }
+        if (player2.has(value)) {
+          cells += `<rect x="${x}" y="${y + cellSize / 2}" width="${cellSize}" height="${cellSize / 2}" fill="#14BE14" fill-opacity="0.6"/>`;
+        }
+      }
+
+      return `<g opacity="0"><title>${escapeXml(frame.label)}</title>${cells}<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;${visibleAt};${visibleAt};${hiddenAt};${hiddenAt};1" dur="${totalSeconds}s" repeatCount="indefinite"/></g>`;
+    };
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Animated Number Game demo replay">${demoHistory.map(frameSvg).join('')}<desc>Vector animated replay of a paused Number Game demo. Red upper halves are Player 1 picks and green lower halves are Player 2 picks.</desc></svg>`;
+    if (format === 'svg') {
+      downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `number-game-demo-${gridSize}x${gridSize}-animated.svg`);
+    } else {
+      downloadBlob(new Blob([buildDemoGif(demoHistory, gridSize, cellSize, titleHeight, frameSeconds)], { type: 'image/gif' }), `number-game-demo-${gridSize}x${gridSize}-animated.gif`);
+    }
+  }
+
+  // Encode the replay directly so this self-contained page needs no image library.
+  function buildDemoGif(frames, size, cellSize, titleHeight, frameSeconds) {
+    const width = size * cellSize;
+    const height = titleHeight + size * cellSize;
+    const bytes = [];
+    const write = (...values) => bytes.push(...values);
+    const word = value => write(value & 255, value >> 8);
+    const text = value => write(...[...value].map(char => char.charCodeAt(0)));
+    // White, cell border, current P1, completed P1, and P2 fills composited on white.
+    const palette = [255,255,255, 170,170,170, 255,77,77, 236,218,218, 115,216,115, 0,0,0, 0,0,0, 0,0,0];
+    text('GIF89a'); word(width); word(height); write(0xF2, 0, 0); write(...palette);
+    write(0x21, 0xFF, 0x0B); text('NETSCAPE2.0'); write(3, 1, 0, 0, 0);
+
+    const lzw = pixels => {
+      const minCodeSize = 3, clear = 1 << minCodeSize, end = clear + 1;
+      const packed = []; let buffer = 0, bits = 0;
+      const writeCode = code => {
+        // Reset before every palette index. This intentionally trades a small
+        // file-size increase for a decoder-compatible fixed 4-bit code stream.
+        buffer |= clear << bits; bits += 4;
+        if (bits >= 8) { packed.push(buffer & 255); buffer >>= 8; bits -= 8; }
+        buffer |= code << bits; bits += 4;
+        if (bits >= 8) { packed.push(buffer & 255); buffer >>= 8; bits -= 8; }
+      };
+      for (const pixel of pixels) writeCode(pixel);
+      buffer |= end << bits; bits += 4;
+      while (bits >= 8) { packed.push(buffer & 255); buffer >>= 8; bits -= 8; }
+      if (bits) packed.push(buffer & 255);
+      return packed;
+    };
+
+    for (const frame of frames) {
+      const pixels = new Uint8Array(width * height); // Palette index 0: white.
+      const player1 = new Set(frame.player1), stage = new Set(frame.stage), player2 = new Set(frame.player2);
+      for (let value = 0; value < size * size; value++) {
+        const column = value % size, row = Math.floor(value / size);
+        const x = column * cellSize, y = titleHeight + row * cellSize;
+        for (let dy = 0; dy < cellSize; dy++) for (let dx = 0; dx < cellSize; dx++) {
+          const border = dx === 0 || dy === 0 || dx === cellSize - 1 || dy === cellSize - 1;
+          const color = border ? 1 : player1.has(value) && dy < cellSize / 2 ? (stage.has(value) ? 2 : 3) : player2.has(value) && dy >= cellSize / 2 ? 4 : 0;
+          pixels[(y + dy) * width + x + dx] = color;
+        }
+      }
+      const delay = Math.round(frameSeconds * 100);
+      write(0x21, 0xF9, 4, 0, delay & 255, delay >> 8, 0, 0, 0x2C);
+      word(0); word(0); word(width); word(height); write(0, 3);
+      const encoded = lzw(pixels);
+      for (let offset = 0; offset < encoded.length; offset += 255) write(Math.min(255, encoded.length - offset), ...encoded.slice(offset, offset + 255));
+      write(0);
+    }
+    write(0x3B);
+    return new Uint8Array(bytes);
+  }
+
+  function downloadGridSvg() {
+    const numberBar = document.querySelector('.number-bar');
+    const gridRect = numberBar.getBoundingClientRect();
+    const blocks = [...numberBar.querySelectorAll('.number-block')];
+    if (!blocks.length || !gridRect.width || !gridRect.height) return;
+
+    const escapeXml = value => String(value).replace(/[&<>\"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&apos;'
+    })[char]);
+    const rectangle = (rect, style, x, y) => {
+      const borderWidth = parseFloat(style.borderTopWidth) || 0;
+      return `<rect x="${x}" y="${y}" width="${rect.width}" height="${rect.height}" fill="${escapeXml(style.backgroundColor)}" stroke="${escapeXml(style.borderTopColor)}" stroke-width="${borderWidth}" />`;
+    };
+
+    const cells = blocks.map(block => {
+      const rect = block.getBoundingClientRect();
+      const style = getComputedStyle(block);
+      const x = rect.left - gridRect.left;
+      const y = rect.top - gridRect.top;
+      const overlays = [...block.children].map(overlay => {
+        const overlayRect = overlay.getBoundingClientRect();
+        const overlayStyle = getComputedStyle(overlay);
+        return `<rect x="${overlayRect.left - gridRect.left}" y="${overlayRect.top - gridRect.top}" width="${overlayRect.width}" height="${overlayRect.height}" fill="${escapeXml(overlayStyle.backgroundColor)}" fill-opacity="${overlayStyle.opacity}" />`;
+      }).join('');
+      return `<g opacity="${style.opacity}">${rectangle(rect, style, x, y)}${overlays}</g>`;
+    }).join('');
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${gridRect.width}" height="${gridRect.height}" viewBox="0 0 ${gridRect.width} ${gridRect.height}">${cells}</svg>`;
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `number-game-${gridSize}x${gridSize}.svg`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  function resizeGrid() {
+    const numberBar = document.querySelector('.number-bar');
+    let gridWidth = window.innerWidth * 0.7;
+    if (fullView) {
+      const top = numberBar.getBoundingClientRect().top + window.scrollY;
+      gridWidth = Math.max(0, Math.min(document.documentElement.clientWidth - 32,
+        window.innerHeight - top - 16));
+    }
+    const blockSize = fullView ? gridWidth / gridSize : Math.floor(gridWidth / gridSize);
+    numberBar.style.gridTemplateColumns = `repeat(${gridSize}, ${blockSize}px)`;
+    numberBar.style.gridTemplateRows = `repeat(${gridSize}, ${blockSize}px)`;
+  }
+
+  function toggleFullView() {
+    fullView = !fullView;
+    document.body.classList.toggle('full-view', fullView);
+    const button = document.getElementById('fullViewBtn');
+    button.classList.toggle('active', fullView);
+    button.setAttribute('aria-pressed', String(fullView));
+    button.setAttribute('aria-label', fullView ? 'Exit full view' : 'Full view');
+    button.title = fullView ? 'Exit full view' : 'Full view';
+    resizeGrid();
+    if (fullView) window.scrollTo(0, 0);
+  }
+
+  window.addEventListener('resize', resizeGrid);
+
+  function generateGrid() {
+    const numBlocks = gridSize * gridSize;
+    const numberBar = document.querySelector('.number-bar');
+    numberBar.innerHTML = '';
+    document.getElementById('player1-picks').textContent = '';
+    document.getElementById('player2-picks').textContent = '';
+    document.getElementById('turn-indicator').textContent = "";
+    player1Picks.clear();
+    player2Picks.clear();
+    player1StagePicks.clear();
+    turn = 1;
+
+    resizeGrid();
+
+    for (let i = 0; i < numBlocks; i++) {
+      const block = document.createElement('div');
+      block.classList.add('number-block');
+      block.textContent = i;
+      block.dataset.number = i;
+
+      if (i % 2 === 0) {
+        block.classList.add('even');
+      } else {
+        block.classList.add('odd');
+      }
+
+      block.addEventListener('click', () => handleBlockClick(i, block));
+      numberBar.appendChild(block);
+    }
+  }
+
+  function scoreEvenBox(number) {
+    if (number % 2 !== 0) {
+      console.warn("Input must be an even number.");
+      return null;
+    }
+
+    const totalBlocks = gridSize * gridSize;
+
+    // Collect all even numbers picked by Player 2
+    const evenPicked = [...player2Picks].filter(n => n % 2 === 0).sort((a, b) => a - b);
+
+    if (evenPicked.length === 0) {
+      // If no even number has been picked by Player 2
+      const totalEvenBoxes = Math.floor(totalBlocks / 2);
+      return totalEvenBoxes;
+    }
+
+    // Calculate distances to all picked even boxes and return the smallest
+    let minDistance = Infinity;
+    for (const picked of evenPicked) {
+      const dist = Math.abs(picked - number);
+      if (dist < minDistance) minDistance = dist;
+    }
+
+    return minDistance;
+  }
+
+
+  function handleBlockClick(number, block) {
+    if (turn === 1) {
+      if (!player1Picks.has(number)) {
+        player1StagePicks.add(number);
+        player1Picks.add(number);
+        const topHalf = document.createElement('div');
+        topHalf.classList.add('player1-picked');
+        block.appendChild(topHalf);
+        document.getElementById('player1-picks').textContent = [...player1Picks].join(', ');
+
+        if (player1StagePicks.size === player1PickCount) {
+          turn = 2;
+          const validMoves = getValidPlayer2Moves();
+          if (validMoves.length === 0) {
+            alert("Player 2 lost!");
+            turn = 0;
+            return;
+          }
+
+		  if (smartPlayer2) {
+		    setTimeout(autoPlaySmartPlayer2, delayvar);
+		  } else if (autoPlayer2) {
+		    setTimeout(() => {
+		      const choice = validMoves[Math.floor(Math.random() * validMoves.length)];
+		      if (!pickPlayer2Pair(choice)) return;
+		      player1StagePicks.clear();
+		      turn = 1;
+		      document.getElementById('turn-indicator').textContent = "";
+		      if (autoPlayer1) setTimeout(autoPlayPlayer1, delayvar);
+		    }, delayvar);
+		  } else {
+		    turn = 2;
+		    document.getElementById('turn-indicator').textContent = "";
+		  }
+
+        }
+      }
+    } else if (turn === 2) {
+      if (player1StagePicks.size === player1PickCount) {
+        if (pickPlayer2Pair(number)) {
+          player1StagePicks.clear();
+          turn = 1;
+          document.getElementById('turn-indicator').textContent = "";
+
+          // 🔁 Auto-play Player 1 if enabled
+          if (autoPlayer1) {
+            setTimeout(autoPlayPlayer1, delayvar);
+          }
+        }
+      }
+    }
+  }
+  
+  function autoPlaySmartPlayer2(allowPaused = false) {
+	if (isPaused && !allowPaused) return;
+    if (turn !== 2 || player1StagePicks.size !== player1PickCount) return;
+    const candidates = getValidPlayer2Moves();
+
+    // If no valid moves exist, the game ends
+    if (candidates.length === 0) {
+      alert("Player 2 lost!");
+      turn = 0; // End the game
+      if (isDemoRunning) endDemo();
+      return;
+    }
+
+    // Pick the one with the maximum score
+    let best = candidates[0];
+    let bestScore = scoreEvenBox(best);
+    for (let i = 1; i < candidates.length; i++) {
+      const s = scoreEvenBox(candidates[i]);
+      if (s > bestScore) {
+        best = candidates[i];
+        bestScore = s;
+      }
+    }
+
+    // Perform the move
+    if (!pickPlayer2Pair(best)) return;
+
+    player1StagePicks.clear();
+    turn = 1;
+    document.getElementById('turn-indicator').textContent = "";
+    recordDemoFrame(`P2 chose ${best}, ${best + 1}`);
+  
+    // Continue only automatic demos. Stepped demos wait for the next Step press.
+    if (isDemoRunning && demoMode === 'auto' && !isPaused) {
+      scheduleDemoMove();
+    } else if (autoPlayer1 && !isDemoRunning) {
+      setTimeout(autoPlayPlayer1, delayvar);
+    }
+  }
+  
+  function autoPlayPlayer1(allowPaused = false) {
+	if (isPaused && !allowPaused) return;
+    const totalBlocks = gridSize * gridSize;
+    const available = [];
+
+    for (let i = 0; i < totalBlocks; i++) {
+      if (!player1Picks.has(i)) {
+        available.push(i);
+      }
+    }
+
+    if (available.length < player1PickCount) {
+      alert("Player 1 lost!");
+      turn = 0;
+      if (isDemoRunning) endDemo();
+      return;
+    }
+
+    // Pick 4 random unique numbers
+    const picks = [];
+    while (picks.length < player1PickCount) {
+      const choice = available[Math.floor(Math.random() * available.length)];
+      if (!picks.includes(choice)) picks.push(choice);
+    }
+
+    picks.forEach(num => {
+      const block = document.querySelector(`.number-block[data-number="${num}"]`);
+      if (!player1Picks.has(num)) {
+        player1Picks.add(num);
+        player1StagePicks.add(num);
+        const topHalf = document.createElement('div');
+        topHalf.classList.add('player1-picked');
+        block.appendChild(topHalf);
+      }
+    });
+
+    document.getElementById('player1-picks').textContent = [...player1Picks].join(', ');
+
+    const validMoves = getValidPlayer2Moves();
+    if (validMoves.length === 0) {
+      alert("Player 2 lost!");
+      turn = 0;
+      if (isDemoRunning) endDemo();
+      return;
+    }
+
+    turn = 2;
+    recordDemoFrame(`P1 chose ${picks.slice().sort((a, b) => a - b).join(', ')}`);
+
+	if (smartPlayer2) {
+	  if (isDemoRunning && demoMode === 'auto' && !isPaused) {
+	    scheduleDemoMove();
+	  } else if (!isDemoRunning) {
+	    setTimeout(autoPlaySmartPlayer2, delayvar);
+	  }
+	} else if (autoPlayer2) {
+	  setTimeout(() => {
+	    const choice = validMoves[Math.floor(Math.random() * validMoves.length)];
+	    if (!pickPlayer2Pair(choice)) return;
+	    player1StagePicks.clear();
+	    turn = 1;
+	    document.getElementById('turn-indicator').textContent = "";
+	    if (autoPlayer1) setTimeout(autoPlayPlayer1, delayvar);
+	  }, delayvar);
+	} else {
+	  turn = 2;
+	  document.getElementById('turn-indicator').textContent = "";
+	}
+
+  }
+
+  // Legal moves are represented by the even first cell of each complete pair.
+  function getValidPlayer2Moves() {
+    if (player1StagePicks.size !== player1PickCount) return [];
+    const min = Math.min(...player1StagePicks);
+    const max = Math.max(...player1StagePicks);
+    const valid = [];
+
+    for (let first = min - min % 2; first <= max && first + 1 < gridSize * gridSize; first += 2) {
+      if (!player2Picks.has(first) && !player2Picks.has(first + 1)) {
+        valid.push(first);
+      }
+    }
+    return valid;
+  }
+
+  function pickPlayer2Pair(number) {
+    const first = number - number % 2;
+    if (turn !== 2 || !getValidPlayer2Moves().includes(first)) return false;
+
+    for (const cell of [first, first + 1]) {
+      player2Picks.add(cell);
+      const block = document.querySelector(`.number-block[data-number="${cell}"]`);
+      const bottomHalf = document.createElement('div');
+      bottomHalf.classList.add('player2-picked');
+      block.appendChild(bottomHalf);
+    }
+    for (const cell of player1StagePicks) {
+      const block = document.querySelector(`.number-block[data-number="${cell}"]`);
+      const topHalf = [...block.children].find(child => child.classList.contains('player1-picked'));
+      topHalf?.classList.add('completed');
+    }
+    document.getElementById('player2-picks').textContent = [...player2Picks].join(', ');
+    return true;
+  }
+
+  generateGrid();
+</script>
+</body>
+</html>
