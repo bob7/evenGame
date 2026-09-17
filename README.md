@@ -13,6 +13,8 @@ Cells are numbered from **0**, from top-left to bottom-right. All cells start wi
 
 Pairs follow cell numbering, including across row boundaries. Since the square grid has an odd side length, its final cell has no partner and is unavailable to Player 2. Player 1 can still select that cell.
 
+<p margin-top="400px" align="center"><img width="650"  src="./even.svg"></p>
+
 ## Controls
 
 The compact controls are arranged in four groups: **[− size +] [P1-auto P2-auto] [Demo Step svg gif] [Full view Rules]**. Groups wrap on narrower windows.
