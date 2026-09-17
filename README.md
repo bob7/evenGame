@@ -21,13 +21,13 @@ The compact controls are arranged in four groups: **[− size +] [P1-auto P2-aut
 
 | Button | What it does |
 | --- | --- |
-| `−` / `+` | Decrease or increase the square grid's side length by two, with a minimum of three, and start a fresh game. The number between the buttons shows the side length. |
-| `P1-auto` / `P2-auto` | Toggle computer play for the corresponding player. |
-| `Demo` / `Pause` | Start an automated game, pause it, or resume it. Starting a demo after a finished game creates a fresh game. |
+| `−`/`+` | Decrease or increase the square grid's side length by two, with a minimum of three, and start a fresh game. The number between the buttons shows the side length. |
+| `P1/P2-auto` | Toggle computer play for the corresponding player. |
+| `Demo`/`Pause` | Start an automated game, pause it, or resume it. Starting a demo after a finished game creates a fresh game. |
 | `Step` | Start a stepped demo or advance the current demo by one turn: Player 1's four selections, then Player 2's pair. |
 | `svg` | Download a vector snapshot of the board as it currently appears. |
 | `gif` | Download matching looping replay files in both **animated SVG** and raster **GIF** formats when a demo is paused, stepped, or finished. |
-| Full-view icon | Fit the square grid within the browser window with padding, accounting for the controls. It adapts to window resizing and preserves the current game. Click again to restore the standard size. This changes the layout within the browser, rather than entering operating-system fullscreen. |
+| Full-view | Fit the square grid within the browser window with padding, accounting for the controls. It adapts to window resizing and preserves the current game. Click again to restore the standard size. This changes the layout within the browser, rather than entering operating-system fullscreen. |
 | `Rules` | Open the in-game guide. |
 
 ## Exports
